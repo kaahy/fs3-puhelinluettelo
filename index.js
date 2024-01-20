@@ -1,14 +1,16 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const app = express()
 const cors = require('cors')
+const Person = require('./models/person')
 
 morgan.token('data', function (req, res) { return JSON.stringify(req.body) })
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data'))
 app.use(express.json())
 app.use(cors())
-app.use(express.static('dist'))  //
+app.use(express.static('dist'))
 
 let persons = [
     {
@@ -38,7 +40,9 @@ app.get('/', (request, response) => {
 })
 
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Person.find({}).then(people => {
+      response.json(people)
+    })
 })
 
 app.get('/info', (request, response) => {
@@ -72,16 +76,16 @@ app.post('/api/persons', (request, response) => {
             error: 'name or number is missing'
         })
     }
-
-    if (persons.filter(p => p.name === person.name).length > 0) {
+    
+    else if (persons.filter(p => p.name === person.name).length > 0) {
         return response.status(400).json({
             error: 'name must be unique'
         })
     }
 
-    person.id = Math.round(Math.random() * 100000)
-    persons = persons.concat(person)
-    response.json(person)
+    const person2 = new Person({ name: person.name, number: person.number })
+    
+    person2.save().then(savedPerson => { response.json(savedPerson) })
 })
 
 const PORT = process.env.PORT || 3001

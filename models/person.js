@@ -10,7 +10,21 @@ mongoose.connect(url)
     .then(result => { console.log('connected to MondoDB') })
     .catch((error) => { console.log('error connecting to MongoDB:', error.message) })
 
-const personSchema = new mongoose.Schema({ name: String, number: String})
+const personSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    minlength: 3
+  },
+  number: {
+    type: String,
+    minlength: 8,
+    validate: {
+      validator: function(v) {
+        return /\d{2,3}-\d{5,}/.test(v)
+      }
+    }
+  }
+})
 
 personSchema.set('toJSON', {
     transform: (document, returnedObject) => {
